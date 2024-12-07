@@ -4,13 +4,13 @@ const HeroSection = () => {
       <div className="grid md:grid-cols-2 gap-8 items-center">
         <div className="animate-fade-in">
           <span className="text-secondary font-semibold">Featured</span>
-          <h2 className="text-4xl font-serif font-bold mt-2 mb-4">
+          <h2 className="text-4xl font-serif font-bold mt-2 mb-4 text-primary">
             Faith and Democracy: The Evolving Role of Religion in Modern Politics
           </h2>
           <p className="text-accent text-lg mb-6">
             An in-depth analysis of how religious values continue to shape political discourse and policy-making in contemporary society.
           </p>
-          <button className="bg-primary text-white px-6 py-2 rounded hover:bg-opacity-90 transition-colors">
+          <button className="bg-secondary text-white px-6 py-2 rounded hover:bg-opacity-90 transition-colors">
             Read More
           </button>
         </div>

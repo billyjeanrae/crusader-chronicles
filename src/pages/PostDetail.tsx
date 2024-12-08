@@ -30,7 +30,7 @@ const PostDetail = () => {
       if (!data) throw new Error('Post not found');
       return data;
     },
-    enabled: !!id, // Only run query if we have an ID
+    enabled: Boolean(id), // Only run query if we have an ID
   });
 
   if (error) {

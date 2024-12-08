@@ -11,12 +11,40 @@ const Register = () => {
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === "SIGNED_IN") {
-        toast({
-          title: "Registration successful",
-          description: "Welcome to National Crusader!",
-        });
-        navigate("/");
+      if (event === "SIGNED_IN" && session) {
+        try {
+          // Ensure the profile exists
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profileError) {
+            console.error('Profile error:', profileError);
+            toast({
+              title: "Error",
+              description: "There was an error setting up your profile. Please try again.",
+              variant: "destructive",
+            });
+            return;
+          }
+
+          toast({
+            title: "Registration successful",
+            description: "Welcome to National Crusader!",
+          });
+          
+          // Use push instead of navigate to ensure clean navigation
+          navigate("/", { replace: true });
+        } catch (error) {
+          console.error('Registration error:', error);
+          toast({
+            title: "Error",
+            description: "An unexpected error occurred. Please try again.",
+            variant: "destructive",
+          });
+        }
       }
     });
 
@@ -51,6 +79,7 @@ const Register = () => {
             }}
             providers={[]}
             view="sign_up"
+            redirectTo={window.location.origin}
           />
         </div>
       </div>

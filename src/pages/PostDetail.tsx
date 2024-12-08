@@ -3,21 +3,27 @@ import Footer from "@/components/Footer";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useParams } from "react-router-dom";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const PostDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const params = useParams<{ id: string }>();
+  const id = params.id;
   
   const { data: post, isLoading, error } = useQuery({
     queryKey: ['post', id],
     queryFn: async () => {
       if (!id) throw new Error('Post ID is required');
       
+      console.log('Fetching post with ID:', id); // Debug log
+      
       const { data, error } = await supabase
         .from('posts')
         .select(`
           *,
           author:profiles(email),
-          categories:posts_categories(category:categories(*))
+          categories:posts_categories(
+            category:categories(*)
+          )
         `)
         .eq('id', id)
         .single();
@@ -27,10 +33,15 @@ const PostDetail = () => {
         throw error;
       }
       
-      if (!data) throw new Error('Post not found');
+      if (!data) {
+        console.error('No post found with ID:', id);
+        throw new Error('Post not found');
+      }
+      
+      console.log('Fetched post:', data); // Debug log
       return data;
     },
-    enabled: Boolean(id), // Only run query if we have an ID
+    enabled: typeof id === 'string' && id.length > 0,
   });
 
   if (error) {
@@ -38,7 +49,12 @@ const PostDetail = () => {
       <div className="min-h-screen flex flex-col">
         <Header />
         <main className="flex-1 container mx-auto px-4 py-8">
-          <div className="text-red-500">Error loading post: {error.message}</div>
+          <Alert variant="destructive">
+            <AlertTitle>Error</AlertTitle>
+            <AlertDescription>
+              {error instanceof Error ? error.message : 'Failed to load post'}
+            </AlertDescription>
+          </Alert>
         </main>
         <Footer />
       </div>
@@ -60,7 +76,7 @@ const PostDetail = () => {
             </div>
             <h1 className="text-4xl font-serif font-bold mb-4">{post.title}</h1>
             <div className="text-sm text-gray-500 mb-8">
-              By {post.author.email} • {new Date(post.published_at).toLocaleDateString()}
+              By {post.author?.email} • {post.published_at ? new Date(post.published_at).toLocaleDateString() : 'Draft'}
             </div>
             <div className="prose max-w-none">
               {post.content}
@@ -77,7 +93,12 @@ const PostDetail = () => {
             </div>
           </article>
         ) : (
-          <div className="text-center">Post not found</div>
+          <Alert>
+            <AlertTitle>Not Found</AlertTitle>
+            <AlertDescription>
+              The requested post could not be found.
+            </AlertDescription>
+          </Alert>
         )}
       </main>
       <Footer />

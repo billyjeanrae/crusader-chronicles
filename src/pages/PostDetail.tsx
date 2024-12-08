@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useParams } from "react-router-dom";
 
 const PostDetail = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   
   const { data: post, isLoading, error } = useQuery({
     queryKey: ['post', id],
@@ -14,7 +14,11 @@ const PostDetail = () => {
       
       const { data, error } = await supabase
         .from('posts')
-        .select('*, author:profiles(email), categories:posts_categories(category:categories(*))')
+        .select(`
+          *,
+          author:profiles(email),
+          categories:posts_categories(category:categories(*))
+        `)
         .eq('id', id)
         .single();
       

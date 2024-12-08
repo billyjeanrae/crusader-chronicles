@@ -29,9 +29,9 @@ const Header = () => {
               National Crusader
             </h1>
             <p className="text-secondary italic mt-1 text-sm">Truth is Life</p>
-            <div className="flex justify-between text-xs text-gray-400 mt-1">
-              <span>RC:8075563</span>
-              <span className="ml-auto">ISSN:2184-0966</span>
+            <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+              <span className="text-left">RC:8075563</span>
+              <span className="text-right ml-auto">ISSN:2184-0966</span>
             </div>
           </div>
           <nav className="hidden md:flex space-x-6">

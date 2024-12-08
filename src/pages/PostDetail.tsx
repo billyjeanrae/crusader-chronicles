@@ -14,11 +14,7 @@ const PostDetail = () => {
       
       const { data, error } = await supabase
         .from('posts')
-        .select(`
-          *,
-          author:profiles(email),
-          categories(*)
-        `)
+        .select('*, author:profiles(email), categories:posts_categories(category:categories(*))')
         .eq('id', id)
         .single();
       
@@ -68,10 +64,10 @@ const PostDetail = () => {
             <div className="mt-8">
               {post.categories?.map((category) => (
                 <span 
-                  key={category.id}
+                  key={category.category.id}
                   className="inline-block bg-gray-100 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"
                 >
-                  {category.name}
+                  {category.category.name}
                 </span>
               ))}
             </div>

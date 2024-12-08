@@ -1,4 +1,5 @@
 import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
@@ -28,7 +29,7 @@ const Register = () => {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <Auth
             supabaseClient={supabase}
-            appearance={{ theme: 'light' }}
+            appearance={{ theme: ThemeSupa }}
             providers={[]}
             view="sign_up"
           />

@@ -13,7 +13,7 @@ const PostDetail = () => {
     queryFn: async () => {
       if (!id) throw new Error('Post ID is required');
       
-      console.log('Fetching post with ID:', id); // Debug log
+      console.log('Fetching post with ID:', id);
       
       const { data, error } = await supabase
         .from('posts')
@@ -37,12 +37,26 @@ const PostDetail = () => {
         throw new Error('Post not found');
       }
       
-      console.log('Fetched post:', data); // Debug log
+      console.log('Fetched post:', data);
       return data;
     },
     enabled: !!id && typeof id === 'string' && id.length > 0,
     retry: false
   });
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container mx-auto px-4 py-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   if (error) {
     return (
@@ -65,11 +79,7 @@ const PostDetail = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-          </div>
-        ) : post ? (
+        {post ? (
           <article className="max-w-3xl mx-auto">
             <div className="h-64 bg-gray-200 rounded-lg mb-8">
               {/* Image placeholder */}

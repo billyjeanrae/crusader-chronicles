@@ -6,8 +6,7 @@ import { useParams } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const PostDetail = () => {
-  const params = useParams<{ id: string }>();
-  const id = params.id;
+  const { id } = useParams<{ id: string }>();
   
   const { data: post, isLoading, error } = useQuery({
     queryKey: ['post', id],
@@ -41,7 +40,8 @@ const PostDetail = () => {
       console.log('Fetched post:', data); // Debug log
       return data;
     },
-    enabled: typeof id === 'string' && id.length > 0,
+    enabled: !!id && typeof id === 'string' && id.length > 0,
+    retry: false
   });
 
   if (error) {

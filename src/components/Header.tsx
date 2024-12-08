@@ -1,7 +1,25 @@
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 const Header = () => {
+  const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <header className="border-b border-gray-200 bg-primary">
       <div className="container mx-auto px-4">
@@ -11,6 +29,10 @@ const Header = () => {
               National Crusader
             </h1>
             <p className="text-secondary italic mt-1 text-sm">Truth is Life</p>
+            <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <span>RC:8075563</span>
+              <span className="ml-auto">ISSN:2184-0966</span>
+            </div>
           </div>
           <nav className="hidden md:flex space-x-6">
             <NavLink href="#" label="Politics" />
@@ -19,9 +41,28 @@ const Header = () => {
             <NavLink href="#" label="World" />
             <NavLink href="#" label="Opinion" />
           </nav>
-          <Button variant="ghost" className="md:hidden text-white">
-            <Menu className="h-6 w-6" />
-          </Button>
+          <div className="flex items-center gap-4">
+            {user ? (
+              <Button 
+                variant="outline" 
+                className="text-white hover:text-primary hover:bg-white"
+                onClick={() => supabase.auth.signOut()}
+              >
+                Sign Out
+              </Button>
+            ) : (
+              <Button 
+                variant="outline" 
+                className="text-white hover:text-primary hover:bg-white"
+                onClick={() => navigate("/login")}
+              >
+                Sign In
+              </Button>
+            )}
+            <Button variant="ghost" className="md:hidden text-white">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </div>
         </div>
       </div>
     </header>

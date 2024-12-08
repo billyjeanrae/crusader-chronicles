@@ -39,6 +39,7 @@ const Footer = () => {
         </div>
         <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-300">
           <p>&copy; 2024 National Crusader. All rights reserved.</p>
+          <p className="mt-2 text-sm">Printed by The Mail Runner Publications Limited</p>
         </div>
       </div>
     </footer>

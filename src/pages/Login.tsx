@@ -3,7 +3,7 @@ import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { toast } from "sonner";
 
 const Login = () => {
@@ -22,6 +22,8 @@ const Login = () => {
         navigate("/");
       } else if (event === "USER_UPDATED") {
         console.log("User updated:", session);
+      } else if (event === "SIGNED_OUT") {
+        setError(null);
       }
     });
 
@@ -29,6 +31,7 @@ const Login = () => {
     const params = new URLSearchParams(window.location.search);
     const errorMessage = params.get('error_description');
     if (errorMessage === 'Email not confirmed') {
+      setError("Please confirm your email address before logging in. Check your inbox for the confirmation link.");
       toast.error("Please confirm your email address before logging in. Check your inbox for the confirmation link.");
     }
 
@@ -68,14 +71,6 @@ const Login = () => {
             }}
             providers={[]}
             redirectTo={window.location.origin}
-            onError={(error) => {
-              console.error("Auth error:", error);
-              if (error.message.includes('Email not confirmed')) {
-                setError("Please confirm your email address before logging in. Check your inbox for the confirmation link.");
-              } else {
-                setError("Invalid login credentials. Please try again.");
-              }
-            }}
           />
         </div>
       </div>

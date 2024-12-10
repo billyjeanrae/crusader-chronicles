@@ -1,116 +1,45 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { PostsManager } from "@/components/admin/PostsManager";
+import { CategoriesManager } from "@/components/admin/CategoriesManager";
+import { PagesManager } from "@/components/admin/PagesManager";
+import { SubscribersManager } from "@/components/admin/SubscribersManager";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("posts");
-  const [posts, setPosts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [subscribers, setSubscribers] = useState([]);
-  const [newPost, setNewPost] = useState({ title: "", content: "", excerpt: "" });
-  const [newCategory, setNewCategory] = useState({ name: "", description: "" });
   const { toast } = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchPosts();
-    fetchCategories();
-    fetchSubscribers();
+    checkAdminAccess();
   }, []);
 
-  const fetchPosts = async () => {
-    const { data, error } = await supabase
-      .from('posts')
-      .select('*, author:profiles(email)');
-    if (error) {
-      console.error('Error fetching posts:', error);
-      return;
-    }
-    setPosts(data || []);
-  };
-
-  const fetchCategories = async () => {
-    const { data, error } = await supabase
-      .from('categories')
-      .select('*');
-    if (error) {
-      console.error('Error fetching categories:', error);
-      return;
-    }
-    setCategories(data || []);
-  };
-
-  const fetchSubscribers = async () => {
-    const { data, error } = await supabase
-      .from('subscribers')
-      .select('*');
-    if (error) {
-      console.error('Error fetching subscribers:', error);
-      return;
-    }
-    setSubscribers(data || []);
-  };
-
-  const handleCreatePost = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const checkAdminAccess = async () => {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) return;
-
-    const { data, error } = await supabase
-      .from('posts')
-      .insert([
-        {
-          ...newPost,
-          author_id: session.user.id,
-          status: 'draft'
-        }
-      ]);
-
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create post",
-        variant: "destructive"
-      });
+    if (!session) {
+      navigate("/login");
       return;
     }
 
-    toast({
-      title: "Success",
-      description: "Post created successfully"
-    });
-    setNewPost({ title: "", content: "", excerpt: "" });
-    fetchPosts();
-  };
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single();
 
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const { data, error } = await supabase
-      .from('categories')
-      .insert([newCategory]);
-
-    if (error) {
+    if (!profile || profile.role !== 'admin') {
       toast({
-        title: "Error",
-        description: "Failed to create category",
+        title: "Access Denied",
+        description: "You need admin privileges to access this page",
         variant: "destructive"
       });
-      return;
+      navigate("/");
     }
-
-    toast({
-      title: "Success",
-      description: "Category created successfully"
-    });
-    setNewCategory({ name: "", description: "" });
-    fetchCategories();
   };
 
   return (
@@ -132,6 +61,12 @@ const Admin = () => {
             Posts
           </Button>
           <Button
+            variant={activeTab === "pages" ? "default" : "outline"}
+            onClick={() => setActiveTab("pages")}
+          >
+            Pages
+          </Button>
+          <Button
             variant={activeTab === "categories" ? "default" : "outline"}
             onClick={() => setActiveTab("categories")}
           >
@@ -146,104 +81,10 @@ const Admin = () => {
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
-          {activeTab === "posts" && (
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Manage Posts</h2>
-              
-              <form onSubmit={handleCreatePost} className="mb-8 space-y-4">
-                <div>
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={newPost.title}
-                    onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="excerpt">Excerpt</Label>
-                  <Input
-                    id="excerpt"
-                    value={newPost.excerpt}
-                    onChange={(e) => setNewPost({ ...newPost, excerpt: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="content">Content</Label>
-                  <Textarea
-                    id="content"
-                    value={newPost.content}
-                    onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-                    required
-                    className="min-h-[200px]"
-                  />
-                </div>
-                <Button type="submit">Create Post</Button>
-              </form>
-
-              <div className="space-y-4">
-                {posts.map((post: any) => (
-                  <div key={post.id} className="p-4 border rounded">
-                    <h3 className="font-semibold">{post.title}</h3>
-                    <p className="text-sm text-gray-600">By {post.author?.email}</p>
-                    <p className="text-sm text-gray-600">Status: {post.status}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {activeTab === "categories" && (
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Manage Categories</h2>
-              
-              <form onSubmit={handleCreateCategory} className="mb-8 space-y-4">
-                <div>
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={newCategory.name}
-                    onChange={(e) => setNewCategory({ ...newCategory, name: e.target.value })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="description">Description</Label>
-                  <Input
-                    id="description"
-                    value={newCategory.description}
-                    onChange={(e) => setNewCategory({ ...newCategory, description: e.target.value })}
-                  />
-                </div>
-                <Button type="submit">Create Category</Button>
-              </form>
-
-              <div className="space-y-4">
-                {categories.map((category: any) => (
-                  <div key={category.id} className="p-4 border rounded">
-                    <h3 className="font-semibold">{category.name}</h3>
-                    <p className="text-sm text-gray-600">{category.description}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          {activeTab === "subscribers" && (
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Manage Subscribers</h2>
-              <div className="space-y-4">
-                {subscribers.map((subscriber: any) => (
-                  <div key={subscriber.id} className="p-4 border rounded">
-                    <p>{subscriber.email}</p>
-                    <p className="text-sm text-gray-600">
-                      Status: {subscriber.is_verified ? 'Verified' : 'Unverified'}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          {activeTab === "posts" && <PostsManager />}
+          {activeTab === "pages" && <PagesManager />}
+          {activeTab === "categories" && <CategoriesManager />}
+          {activeTab === "subscribers" && <SubscribersManager />}
         </div>
       </main>
       <Footer />

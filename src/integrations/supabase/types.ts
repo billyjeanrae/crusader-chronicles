@@ -30,6 +30,62 @@ export type Database = {
         }
         Relationships: []
       }
+      pages: {
+        Row: {
+          author_id: string
+          content: string
+          created_at: string
+          id: string
+          is_published: boolean | null
+          menu_order: number | null
+          meta_description: string | null
+          meta_keywords: string | null
+          meta_title: string | null
+          show_in_menu: boolean | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          content: string
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          menu_order?: number | null
+          meta_description?: string | null
+          meta_keywords?: string | null
+          meta_title?: string | null
+          show_in_menu?: boolean | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          is_published?: boolean | null
+          menu_order?: number | null
+          meta_description?: string | null
+          meta_keywords?: string | null
+          meta_title?: string | null
+          show_in_menu?: boolean | null
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pages_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string

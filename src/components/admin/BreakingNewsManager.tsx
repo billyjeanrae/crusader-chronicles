@@ -18,10 +18,15 @@ export const BreakingNewsManager = () => {
       .from('pages')
       .select('content')
       .eq('slug', 'breaking-news')
-      .single();
+      .maybeSingle();
     
     if (error && error.code !== 'PGRST116') {
       console.error('Error fetching news:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch news items",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -31,7 +36,10 @@ export const BreakingNewsManager = () => {
         setNewsItems(items);
       } catch (e) {
         console.error('Error parsing news:', e);
+        setNewsItems([]);
       }
+    } else {
+      setNewsItems([]);
     }
   };
 
@@ -68,10 +76,16 @@ export const BreakingNewsManager = () => {
 
   const handleRemoveNews = async (index: number) => {
     const updatedNews = newsItems.filter((_, i) => i !== index);
+    
     const { error } = await supabase
       .from('pages')
-      .update({ content: JSON.stringify(updatedNews) })
-      .eq('slug', 'breaking-news');
+      .upsert({
+        slug: 'breaking-news',
+        title: 'Breaking News',
+        content: JSON.stringify(updatedNews),
+        is_published: true,
+        author_id: (await supabase.auth.getSession()).data.session?.user.id
+      });
 
     if (error) {
       toast({

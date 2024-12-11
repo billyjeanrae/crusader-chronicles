@@ -15,9 +15,9 @@ const NewsTicker = () => {
       .from('pages')
       .select('content')
       .eq('slug', 'breaking-news')
-      .single();
+      .maybeSingle();
     
-    if (error) {
+    if (error && error.code !== 'PGRST116') {
       console.error('Error fetching news:', error);
       return;
     }
@@ -28,14 +28,16 @@ const NewsTicker = () => {
         setNews(newsItems);
       } catch (e) {
         console.error('Error parsing news:', e);
-        setNews([
-          "Breaking: Senate Passes New Religious Freedom Bill",
-          "Supreme Court to Hear Major Case on Prayer in Schools",
-          "New Poll Shows Shifting Religious Demographics in Key States",
-        ]);
+        setNews([]);
       }
+    } else {
+      setNews([]);
     }
   };
+
+  if (news.length === 0) {
+    return null;
+  }
 
   return (
     <div className="bg-primary text-white py-2 overflow-hidden">

@@ -12,14 +12,15 @@ interface Post {
   featured_image: string | null;
   published_at: string | null;
   created_at: string;
+  author_id: string;
+  status: string | null;
+  updated_at: string;
   author: {
     email: string;
   };
   categories: {
-    category: {
-      id: string;
-      name: string;
-    };
+    name: string;
+    id: string;
   }[];
 }
 
@@ -34,14 +35,24 @@ const Politics = () => {
         .select(`
           *,
           author:profiles(email),
-          categories!inner(category:categories(*))
+          categories:posts_categories(categories(*))
         `)
         .eq('categories.name', 'Politics')
         .eq('status', 'published')
         .order('published_at', { ascending: false });
       
       if (error) throw error;
-      return data;
+      
+      // Transform the data to match our Post interface
+      const transformedData = data.map(post => ({
+        ...post,
+        categories: post.categories.map((cat: any) => ({
+          id: cat.categories.id,
+          name: cat.categories.name
+        }))
+      }));
+      
+      return transformedData;
     },
   });
 
@@ -82,6 +93,16 @@ const Politics = () => {
                   <p className="text-gray-600 mb-4 line-clamp-3">{post.excerpt}</p>
                   <div className="text-sm text-gray-500">
                     By {post.author.email} • {new Date(post.published_at || post.created_at).toLocaleDateString()}
+                  </div>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {post.categories.map(category => (
+                      <span 
+                        key={category.id}
+                        className="inline-block bg-gray-100 rounded-full px-3 py-1 text-sm font-semibold text-gray-700"
+                      >
+                        {category.name}
+                      </span>
+                    ))}
                   </div>
                 </div>
               </article>

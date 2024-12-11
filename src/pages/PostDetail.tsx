@@ -2,18 +2,19 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
 const PostDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   
   const { data: post, isLoading, error } = useQuery({
     queryKey: ['post', id],
     queryFn: async () => {
       if (!id) throw new Error('Post ID is required');
-      
-      console.log('Fetching post with ID:', id);
       
       const { data, error } = await supabase
         .from('posts')
@@ -27,22 +28,18 @@ const PostDetail = () => {
         .eq('id', id)
         .single();
       
-      if (error) {
-        console.error('Error fetching post:', error);
-        throw error;
-      }
+      if (error) throw error;
+      if (!data) throw new Error('Post not found');
       
-      if (!data) {
-        console.error('No post found with ID:', id);
-        throw new Error('Post not found');
-      }
-      
-      console.log('Fetched post:', data);
       return data;
     },
-    enabled: !!id && typeof id === 'string' && id.length > 0,
-    retry: false
+    enabled: !!id
   });
+
+  const getImageUrl = (imagePath: string) => {
+    if (!imagePath) return null;
+    return `${supabase.storage.from('post-images').getPublicUrl(imagePath).data.publicUrl}`;
+  };
 
   if (isLoading) {
     return (
@@ -81,21 +78,40 @@ const PostDetail = () => {
       <main className="flex-1 container mx-auto px-4 py-8">
         {post ? (
           <article className="max-w-3xl mx-auto">
-            <div className="h-64 bg-gray-200 rounded-lg mb-8">
-              {/* Image placeholder */}
-            </div>
+            <Button
+              variant="ghost"
+              className="mb-8"
+              onClick={() => navigate(-1)}
+            >
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back
+            </Button>
+            
+            {post.featured_image && (
+              <div className="h-[400px] rounded-lg overflow-hidden mb-8">
+                <img
+                  src={getImageUrl(post.featured_image)}
+                  alt={post.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            
             <h1 className="text-4xl font-serif font-bold mb-4">{post.title}</h1>
-            <div className="text-sm text-gray-500 mb-8">
-              By {post.author?.email} • {post.published_at ? new Date(post.published_at).toLocaleDateString() : 'Draft'}
+            
+            <div className="flex items-center gap-4 text-sm text-gray-500 mb-8">
+              <span>By {post.author?.email}</span>
+              <span>•</span>
+              <span>{post.published_at ? new Date(post.published_at).toLocaleDateString() : new Date(post.created_at).toLocaleDateString()}</span>
             </div>
-            <div className="prose max-w-none">
-              {post.content}
-            </div>
-            <div className="mt-8">
-              {post.categories?.map((category) => (
+            
+            <div className="prose max-w-none mb-8" dangerouslySetInnerHTML={{ __html: post.content }} />
+            
+            <div className="flex flex-wrap gap-2">
+              {post.categories?.map((category: any) => (
                 <span 
                   key={category.category.id}
-                  className="inline-block bg-gray-100 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"
+                  className="inline-block bg-gray-100 rounded-full px-3 py-1 text-sm font-semibold text-gray-700"
                 >
                   {category.category.name}
                 </span>

@@ -7,11 +7,30 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  excerpt: string | null;
+  featured_image: string | null;
+  published_at: string | null;
+  created_at: string;
+  author: {
+    email: string;
+  };
+  categories: {
+    category: {
+      id: string;
+      name: string;
+    };
+  }[];
+}
+
 const PostDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  const { data: post, isLoading, error } = useQuery({
+  const { data: post, isLoading, error } = useQuery<Post>({
     queryKey: ['post', id],
     queryFn: async () => {
       if (!id) throw new Error('Post ID is required');
@@ -108,7 +127,7 @@ const PostDetail = () => {
             <div className="prose max-w-none mb-8" dangerouslySetInnerHTML={{ __html: post.content }} />
             
             <div className="flex flex-wrap gap-2">
-              {post.categories?.map((category: any) => (
+              {post.categories?.map((category) => (
                 <span 
                   key={category.category.id}
                   className="inline-block bg-gray-100 rounded-full px-3 py-1 text-sm font-semibold text-gray-700"

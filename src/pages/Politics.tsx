@@ -4,10 +4,29 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 
+interface Post {
+  id: string;
+  title: string;
+  content: string;
+  excerpt: string | null;
+  featured_image: string | null;
+  published_at: string | null;
+  created_at: string;
+  author: {
+    email: string;
+  };
+  categories: {
+    category: {
+      id: string;
+      name: string;
+    };
+  }[];
+}
+
 const Politics = () => {
   const navigate = useNavigate();
   
-  const { data: posts, isLoading } = useQuery({
+  const { data: posts, isLoading } = useQuery<Post[]>({
     queryKey: ['politics-posts'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -15,7 +34,7 @@ const Politics = () => {
         .select(`
           *,
           author:profiles(email),
-          categories!inner(*)
+          categories!inner(category:categories(*))
         `)
         .eq('categories.name', 'Politics')
         .eq('status', 'published')

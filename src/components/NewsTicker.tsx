@@ -48,16 +48,6 @@ const NewsTicker = () => {
           </span>
         ))}
       </div>
-      <style jsx>{`
-        .news-ticker {
-          display: inline-block;
-          animation: ticker 30s linear infinite;
-        }
-        @keyframes ticker {
-          0% { transform: translateX(100%); }
-          100% { transform: translateX(-100%); }
-        }
-      `}</style>
     </div>
   );
 };

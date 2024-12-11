@@ -14,7 +14,8 @@
 }
 
 .news-ticker {
-  animation: ticker 20s linear infinite;
+  display: inline-block;
+  animation: ticker 30s linear infinite;
 }
 
 @keyframes ticker {

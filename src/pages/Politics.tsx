@@ -21,8 +21,10 @@ interface Post {
     email: string;
   };
   categories: {
-    name: string;
-    id: string;
+    categories: {
+      id: string;
+      name: string;
+    };
   }[];
 }
 
@@ -32,43 +34,59 @@ const Politics = () => {
   const { data: posts, isLoading, error } = useQuery<Post[]>({
     queryKey: ['politics-posts'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get the Politics category ID
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('categories')
+        .select('id')
+        .eq('name', 'Politics')
+        .single();
+
+      if (categoryError) {
+        toast({
+          title: "Error fetching category",
+          description: categoryError.message,
+          variant: "destructive"
+        });
+        throw categoryError;
+      }
+
+      // Then get posts in that category
+      const { data, error: postsError } = await supabase
         .from('posts')
         .select(`
           *,
           author:profiles(email),
           categories:posts_categories(categories(*))
         `)
-        .eq('categories.name', 'Politics')
         .eq('status', 'published')
+        .eq('posts_categories.category_id', categoryData.id)
         .order('published_at', { ascending: false });
       
-      if (error) {
+      if (postsError) {
         toast({
           title: "Error fetching posts",
-          description: error.message,
+          description: postsError.message,
           variant: "destructive"
         });
-        throw error;
+        throw postsError;
       }
       
-      // Transform the data to match our Post interface
-      const transformedData = data.map(post => ({
-        ...post,
-        categories: post.categories.map((cat: any) => ({
-          id: cat.categories.id,
-          name: cat.categories.name
-        }))
-      }));
-      
-      return transformedData;
+      return data;
     },
   });
 
-  const getImageUrl = (imagePath: string) => {
+  const getImageUrl = (imagePath: string | null) => {
     if (!imagePath) return null;
     return `${supabase.storage.from('post-images').getPublicUrl(imagePath).data.publicUrl}`;
   };
+
+  if (error) {
+    toast({
+      title: "Error",
+      description: "Failed to load posts. Please try again later.",
+      variant: "destructive"
+    });
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
@@ -81,10 +99,6 @@ const Politics = () => {
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
               <Loader2 className="h-8 w-8 animate-spin text-gray-500" />
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-red-500">Failed to load posts. Please try again later.</p>
             </div>
           ) : !posts?.length ? (
             <div className="text-center py-12">
@@ -113,16 +127,16 @@ const Politics = () => {
                   </div>
                   <div className="p-6">
                     <div className="flex flex-wrap gap-2 mb-3">
-                      {post.categories.map(category => (
+                      {post.categories.map((cat, index) => (
                         <span 
-                          key={category.id}
+                          key={`${post.id}-${cat.categories.id}-${index}`}
                           className="inline-block bg-gray-100 rounded-full px-3 py-1 text-xs font-semibold text-gray-700"
                         >
-                          {category.name}
+                          {cat.categories.name}
                         </span>
                       ))}
                     </div>
-                    <h2 className="text-xl font-serif font-bold mb-2 group-hover:text-secondary transition-colors">
+                    <h2 className="text-xl font-serif font-bold mb-2 group-hover:text-blue-600 transition-colors">
                       {post.title}
                       <ArrowUpRight className="inline-block ml-1 h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </h2>

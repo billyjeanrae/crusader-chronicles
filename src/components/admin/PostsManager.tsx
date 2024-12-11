@@ -1,29 +1,48 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Editor } from "@tinymce/tinymce-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const PostsManager = () => {
   const [posts, setPosts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [newPost, setNewPost] = useState({ 
     title: "", 
     content: "", 
     excerpt: "",
-    featured_image: null as File | null
+    featured_image: null as File | null,
+    category_id: ""
   });
   const { toast } = useToast();
 
   useEffect(() => {
     fetchPosts();
+    fetchCategories();
   }, []);
+
+  const fetchCategories = async () => {
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*');
+    if (error) {
+      console.error('Error fetching categories:', error);
+      return;
+    }
+    setCategories(data || []);
+  };
 
   const fetchPosts = async () => {
     const { data, error } = await supabase
       .from('posts')
-      .select('*, author:profiles(email)');
+      .select(`
+        *,
+        author:profiles(email),
+        categories:posts_categories(category:categories(*))
+      `);
     if (error) {
       console.error('Error fetching posts:', error);
       return;
@@ -61,18 +80,22 @@ export const PostsManager = () => {
       imagePath = fileName;
     }
 
-    const { error } = await supabase
+    const { data: post, error: postError } = await supabase
       .from('posts')
       .insert([
         {
-          ...newPost,
+          title: newPost.title,
+          content: newPost.content,
+          excerpt: newPost.excerpt,
           author_id: session.user.id,
           status: 'draft',
           featured_image: imagePath
         }
-      ]);
+      ])
+      .select()
+      .single();
 
-    if (error) {
+    if (postError) {
       toast({
         title: "Error",
         description: "Failed to create post",
@@ -81,11 +104,36 @@ export const PostsManager = () => {
       return;
     }
 
+    if (newPost.category_id && post) {
+      const { error: categoryError } = await supabase
+        .from('posts_categories')
+        .insert([
+          {
+            post_id: post.id,
+            category_id: newPost.category_id
+          }
+        ]);
+
+      if (categoryError) {
+        toast({
+          title: "Warning",
+          description: "Post created but failed to assign category",
+          variant: "destructive"
+        });
+      }
+    }
+
     toast({
       title: "Success",
       description: "Post created successfully"
     });
-    setNewPost({ title: "", content: "", excerpt: "", featured_image: null });
+    setNewPost({ 
+      title: "", 
+      content: "", 
+      excerpt: "", 
+      featured_image: null,
+      category_id: ""
+    });
     fetchPosts();
   };
 
@@ -134,13 +182,42 @@ export const PostsManager = () => {
           />
         </div>
         <div>
+          <Label htmlFor="category">Category</Label>
+          <Select
+            value={newPost.category_id}
+            onValueChange={(value) => setNewPost({ ...newPost, category_id: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categories.map((category: any) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
           <Label htmlFor="content">Content</Label>
-          <Textarea
-            id="content"
+          <Editor
+            apiKey="your-tinymce-api-key"
+            init={{
+              height: 500,
+              menubar: false,
+              plugins: [
+                'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+              ],
+              toolbar: 'undo redo | blocks | ' +
+                'bold italic forecolor | alignleft aligncenter ' +
+                'alignright alignjustify | bullist numlist outdent indent | ' +
+                'removeformat | help'
+            }}
             value={newPost.content}
-            onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
-            required
-            className="min-h-[200px]"
+            onEditorChange={(content) => setNewPost({ ...newPost, content })}
           />
         </div>
         <div>
@@ -163,6 +240,9 @@ export const PostsManager = () => {
                 <h3 className="font-semibold">{post.title}</h3>
                 <p className="text-sm text-gray-600">By {post.author?.email}</p>
                 <p className="text-sm text-gray-600">Status: {post.status}</p>
+                <p className="text-sm text-gray-600">
+                  Categories: {post.categories?.map((c: any) => c.category.name).join(', ')}
+                </p>
               </div>
               <Button
                 variant="destructive"

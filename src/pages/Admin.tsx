@@ -9,6 +9,7 @@ import { PostsManager } from "@/components/admin/PostsManager";
 import { CategoriesManager } from "@/components/admin/CategoriesManager";
 import { PagesManager } from "@/components/admin/PagesManager";
 import { SubscribersManager } from "@/components/admin/SubscribersManager";
+import { BreakingNewsManager } from "@/components/admin/BreakingNewsManager";
 
 const Admin = () => {
   const [activeTab, setActiveTab] = useState("posts");
@@ -78,6 +79,12 @@ const Admin = () => {
           >
             Subscribers
           </Button>
+          <Button
+            variant={activeTab === "breaking-news" ? "default" : "outline"}
+            onClick={() => setActiveTab("breaking-news")}
+          >
+            Breaking News
+          </Button>
         </div>
 
         <div className="bg-white rounded-lg shadow p-6">
@@ -85,6 +92,7 @@ const Admin = () => {
           {activeTab === "pages" && <PagesManager />}
           {activeTab === "categories" && <CategoriesManager />}
           {activeTab === "subscribers" && <SubscribersManager />}
+          {activeTab === "breaking-news" && <BreakingNewsManager />}
         </div>
       </main>
       <Footer />

@@ -1,9 +1,41 @@
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
 const NewsTicker = () => {
-  const news = [
-    "Breaking: Senate Passes New Religious Freedom Bill",
-    "Supreme Court to Hear Major Case on Prayer in Schools",
-    "New Poll Shows Shifting Religious Demographics in Key States",
-  ];
+  const [news, setNews] = useState([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchNews();
+  }, []);
+
+  const fetchNews = async () => {
+    const { data, error } = await supabase
+      .from('pages')
+      .select('content')
+      .eq('slug', 'breaking-news')
+      .single();
+    
+    if (error) {
+      console.error('Error fetching news:', error);
+      return;
+    }
+
+    if (data) {
+      try {
+        const newsItems = JSON.parse(data.content);
+        setNews(newsItems);
+      } catch (e) {
+        console.error('Error parsing news:', e);
+        setNews([
+          "Breaking: Senate Passes New Religious Freedom Bill",
+          "Supreme Court to Hear Major Case on Prayer in Schools",
+          "New Poll Shows Shifting Religious Demographics in Key States",
+        ]);
+      }
+    }
+  };
 
   return (
     <div className="bg-primary text-white py-2 overflow-hidden">

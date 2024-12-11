@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,8 +8,17 @@ import { supabase } from "@/integrations/supabase/client";
 
 export const PostsManager = () => {
   const [posts, setPosts] = useState([]);
-  const [newPost, setNewPost] = useState({ title: "", content: "", excerpt: "" });
+  const [newPost, setNewPost] = useState({ 
+    title: "", 
+    content: "", 
+    excerpt: "",
+    featured_image: null as File | null
+  });
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchPosts();
+  }, []);
 
   const fetchPosts = async () => {
     const { data, error } = await supabase
@@ -22,10 +31,35 @@ export const PostsManager = () => {
     setPosts(data || []);
   };
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setNewPost({ ...newPost, featured_image: e.target.files[0] });
+    }
+  };
+
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault();
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) return;
+
+    let imagePath = null;
+    if (newPost.featured_image) {
+      const fileExt = newPost.featured_image.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage
+        .from('post-images')
+        .upload(fileName, newPost.featured_image);
+
+      if (uploadError) {
+        toast({
+          title: "Error",
+          description: "Failed to upload image",
+          variant: "destructive"
+        });
+        return;
+      }
+      imagePath = fileName;
+    }
 
     const { error } = await supabase
       .from('posts')
@@ -33,7 +67,8 @@ export const PostsManager = () => {
         {
           ...newPost,
           author_id: session.user.id,
-          status: 'draft'
+          status: 'draft',
+          featured_image: imagePath
         }
       ]);
 
@@ -50,7 +85,29 @@ export const PostsManager = () => {
       title: "Success",
       description: "Post created successfully"
     });
-    setNewPost({ title: "", content: "", excerpt: "" });
+    setNewPost({ title: "", content: "", excerpt: "", featured_image: null });
+    fetchPosts();
+  };
+
+  const handleDeletePost = async (postId: string) => {
+    const { error } = await supabase
+      .from('posts')
+      .delete()
+      .eq('id', postId);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete post",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    toast({
+      title: "Success",
+      description: "Post deleted successfully"
+    });
     fetchPosts();
   };
 
@@ -86,15 +143,35 @@ export const PostsManager = () => {
             className="min-h-[200px]"
           />
         </div>
+        <div>
+          <Label htmlFor="image">Featured Image</Label>
+          <Input
+            id="image"
+            type="file"
+            accept="image/*"
+            onChange={handleImageChange}
+          />
+        </div>
         <Button type="submit">Create Post</Button>
       </form>
 
       <div className="space-y-4">
         {posts.map((post: any) => (
           <div key={post.id} className="p-4 border rounded">
-            <h3 className="font-semibold">{post.title}</h3>
-            <p className="text-sm text-gray-600">By {post.author?.email}</p>
-            <p className="text-sm text-gray-600">Status: {post.status}</p>
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="font-semibold">{post.title}</h3>
+                <p className="text-sm text-gray-600">By {post.author?.email}</p>
+                <p className="text-sm text-gray-600">Status: {post.status}</p>
+              </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => handleDeletePost(post.id)}
+              >
+                Delete
+              </Button>
+            </div>
           </div>
         ))}
       </div>

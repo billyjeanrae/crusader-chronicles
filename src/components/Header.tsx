@@ -1,6 +1,6 @@
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
 
@@ -24,8 +24,8 @@ const Header = () => {
     <header className="border-b border-gray-200 bg-primary">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center py-4">
-          <div>
-            <h1 className="text-3xl font-serif font-bold text-white">
+          <Link to="/" className="group">
+            <h1 className="text-3xl font-serif font-bold text-white group-hover:text-secondary transition-colors">
               National Crusader
             </h1>
             <p className="text-secondary italic mt-1 text-sm">Truth is Life</p>
@@ -33,7 +33,7 @@ const Header = () => {
               <span className="text-left">RC:8075563</span>
               <span className="text-right ml-auto">ISSN:2184-0966</span>
             </div>
-          </div>
+          </Link>
           <nav className="hidden md:flex space-x-6">
             <NavLink href="/politics" label="Politics" />
             <NavLink href="/faith" label="Faith" />
@@ -89,13 +89,16 @@ const Header = () => {
   );
 };
 
-const NavLink = ({ href, label }: { href: string; label: string }) => (
-  <a
-    href={href}
-    className="text-white hover:text-secondary transition-colors duration-200"
-  >
-    {label}
-  </a>
-);
+const NavLink = ({ href, label }: { href: string; label: string }) => {
+  const navigate = useNavigate();
+  return (
+    <button
+      onClick={() => navigate(href)}
+      className="text-white hover:text-secondary transition-colors duration-200"
+    >
+      {label}
+    </button>
+  );
+};
 
 export default Header;

@@ -34,7 +34,6 @@ const Politics = () => {
   const { data: posts, isLoading, error } = useQuery<Post[]>({
     queryKey: ['politics-posts'],
     queryFn: async () => {
-      // First get the Politics category ID
       const { data: categoryData, error: categoryError } = await supabase
         .from('categories')
         .select('id')
@@ -50,7 +49,6 @@ const Politics = () => {
         throw categoryError;
       }
 
-      // Then get posts in that category
       const { data, error: postsError } = await supabase
         .from('posts')
         .select(`
@@ -74,6 +72,19 @@ const Politics = () => {
       return data;
     },
   });
+
+  const placeholderImages = [
+    'https://images.unsplash.com/photo-1649972904349-6e44c42644a7',
+    'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b',
+    'https://images.unsplash.com/photo-1518770660439-4636190af475',
+    'https://images.unsplash.com/photo-1461749280684-dccba630e2f6',
+    'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d',
+    'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158',
+    'https://images.unsplash.com/photo-1485827404703-89b55fcc595e',
+    'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5',
+    'https://images.unsplash.com/photo-1531297484001-80022131f5a1',
+    'https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7'
+  ];
 
   const getImageUrl = (imagePath: string | null) => {
     if (!imagePath) return null;
@@ -106,24 +117,18 @@ const Politics = () => {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {posts.map((post) => (
+              {posts.map((post, index) => (
                 <article 
                   key={post.id} 
                   className="bg-white rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer group"
                   onClick={() => navigate(`/post/${post.id}`)}
                 >
                   <div className="relative h-48 bg-gray-200">
-                    {post.featured_image ? (
-                      <img
-                        src={getImageUrl(post.featured_image)}
-                        alt={post.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        No image available
-                      </div>
-                    )}
+                    <img
+                      src={getImageUrl(post.featured_image) || placeholderImages[index % placeholderImages.length]}
+                      alt={post.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                    />
                   </div>
                   <div className="p-6">
                     <div className="flex flex-wrap gap-2 mb-3">

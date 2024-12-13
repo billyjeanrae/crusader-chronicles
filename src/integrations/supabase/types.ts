@@ -30,6 +30,56 @@ export type Database = {
         }
         Relationships: []
       }
+      featured_stories: {
+        Row: {
+          created_at: string
+          id: string
+          position: string
+          post_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          position: string
+          post_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          position?: string
+          post_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "featured_stories_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      homepage_sections: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
       pages: {
         Row: {
           author_id: string

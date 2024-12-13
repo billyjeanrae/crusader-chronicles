@@ -55,7 +55,7 @@ const PostDetail = () => {
     enabled: !!id
   });
 
-  const getImageUrl = (imagePath: string) => {
+  const getImageUrl = (imagePath: string | null) => {
     if (!imagePath) return null;
     return `${supabase.storage.from('post-images').getPublicUrl(imagePath).data.publicUrl}`;
   };
@@ -107,7 +107,7 @@ const PostDetail = () => {
             </Button>
             
             {post.featured_image && (
-              <div className="h-[400px] rounded-lg overflow-hidden mb-8">
+              <div className="relative h-[500px] rounded-lg overflow-hidden mb-8 shadow-lg">
                 <img
                   src={getImageUrl(post.featured_image)}
                   alt={post.title}

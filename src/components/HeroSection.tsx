@@ -45,7 +45,7 @@ const HeroSection = () => {
         )
       `)
       .eq('position', 'hero')
-      .single();
+      .maybeSingle(); // Changed from .single() to .maybeSingle()
 
     if (error) {
       toast({

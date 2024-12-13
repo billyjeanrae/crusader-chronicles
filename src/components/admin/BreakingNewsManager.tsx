@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const BreakingNewsManager = () => {
   const [newsItems, setNewsItems] = useState<string[]>([]);
   const [newItem, setNewItem] = useState("");
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -43,10 +44,13 @@ export const BreakingNewsManager = () => {
     }
   };
 
-  const handleAddNews = async () => {
+  const handleSaveNews = async () => {
     if (!newItem.trim()) return;
     
-    const updatedNews = [...newsItems, newItem];
+    const updatedNews = editingIndex !== null
+      ? newsItems.map((item, index) => index === editingIndex ? newItem : item)
+      : [...newsItems, newItem];
+
     const { error } = await supabase
       .from('pages')
       .upsert({
@@ -60,7 +64,7 @@ export const BreakingNewsManager = () => {
     if (error) {
       toast({
         title: "Error",
-        description: "Failed to add news item",
+        description: editingIndex !== null ? "Failed to update news item" : "Failed to add news item",
         variant: "destructive"
       });
       return;
@@ -68,10 +72,16 @@ export const BreakingNewsManager = () => {
 
     setNewsItems(updatedNews);
     setNewItem("");
+    setEditingIndex(null);
     toast({
       title: "Success",
-      description: "News item added successfully"
+      description: editingIndex !== null ? "News item updated successfully" : "News item added successfully"
     });
+  };
+
+  const handleEdit = (index: number) => {
+    setNewItem(newsItems[index]);
+    setEditingIndex(index);
   };
 
   const handleRemoveNews = async (index: number) => {
@@ -97,10 +107,19 @@ export const BreakingNewsManager = () => {
     }
 
     setNewsItems(updatedNews);
+    if (editingIndex === index) {
+      setEditingIndex(null);
+      setNewItem("");
+    }
     toast({
       title: "Success",
       description: "News item removed successfully"
     });
+  };
+
+  const handleCancel = () => {
+    setNewItem("");
+    setEditingIndex(null);
   };
 
   return (
@@ -114,20 +133,36 @@ export const BreakingNewsManager = () => {
           placeholder="Enter news item..."
           className="flex-1"
         />
-        <Button onClick={handleAddNews}>Add News</Button>
+        <Button onClick={handleSaveNews}>
+          {editingIndex !== null ? 'Update News' : 'Add News'}
+        </Button>
+        {editingIndex !== null && (
+          <Button variant="outline" onClick={handleCancel}>
+            Cancel
+          </Button>
+        )}
       </div>
 
       <div className="space-y-2">
         {newsItems.map((item, index) => (
           <div key={index} className="flex items-center justify-between p-2 bg-background border rounded">
             <span>{item}</span>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={() => handleRemoveNews(index)}
-            >
-              Remove
-            </Button>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleEdit(index)}
+              >
+                Edit
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => handleRemoveNews(index)}
+              >
+                Remove
+              </Button>
+            </div>
           </div>
         ))}
       </div>

@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Editor } from "@tinymce/tinymce-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -20,7 +21,8 @@ export const PostForm = ({ initialData, onSubmit, mode }: PostFormProps) => {
     excerpt: "",
     featured_image: null as File | null,
     category_id: "",
-    status: "draft"
+    status: "draft",
+    is_breaking_news: false
   });
   const [categories, setCategories] = useState([]);
   const { toast } = useToast();
@@ -30,7 +32,8 @@ export const PostForm = ({ initialData, onSubmit, mode }: PostFormProps) => {
     if (initialData) {
       setFormData({
         ...initialData,
-        featured_image: null
+        featured_image: null,
+        is_breaking_news: initialData.is_breaking_news || false
       });
     }
   }, [initialData]);
@@ -106,6 +109,16 @@ export const PostForm = ({ initialData, onSubmit, mode }: PostFormProps) => {
             <SelectItem value="published">Published</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Switch
+          id="breaking-news"
+          checked={formData.is_breaking_news}
+          onCheckedChange={(checked) => 
+            setFormData({ ...formData, is_breaking_news: checked })
+          }
+        />
+        <Label htmlFor="breaking-news">Mark as Breaking News</Label>
       </div>
       <div>
         <Label htmlFor="content">Content</Label>

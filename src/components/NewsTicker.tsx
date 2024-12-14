@@ -1,38 +1,34 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Link } from "react-router-dom";
 
 const NewsTicker = () => {
   const [news, setNews] = useState([]);
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchNews();
+    fetchBreakingNews();
   }, []);
 
-  const fetchNews = async () => {
+  const fetchBreakingNews = async () => {
     const { data, error } = await supabase
-      .from('pages')
-      .select('content')
-      .eq('slug', 'breaking-news')
-      .maybeSingle();
+      .from('posts')
+      .select('id, title')
+      .eq('is_breaking_news', true)
+      .eq('status', 'published');
     
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching news:', error);
+    if (error) {
+      console.error('Error fetching breaking news:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch breaking news",
+        variant: "destructive"
+      });
       return;
     }
 
-    if (data) {
-      try {
-        const newsItems = JSON.parse(data.content);
-        setNews(newsItems);
-      } catch (e) {
-        console.error('Error parsing news:', e);
-        setNews([]);
-      }
-    } else {
-      setNews([]);
-    }
+    setNews(data || []);
   };
 
   if (news.length === 0) {
@@ -42,10 +38,14 @@ const NewsTicker = () => {
   return (
     <div className="bg-primary text-white py-2 overflow-hidden">
       <div className="news-ticker whitespace-nowrap">
-        {news.map((item, index) => (
-          <span key={index} className="mx-8">
-            {item} •
-          </span>
+        {news.map((item) => (
+          <Link 
+            key={item.id} 
+            to={`/post/${item.id}`}
+            className="mx-8 hover:text-primary-foreground/80 transition-colors inline-block"
+          >
+            {item.title} •
+          </Link>
         ))}
       </div>
     </div>

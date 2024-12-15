@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { AlertCircle } from "lucide-react";
 
 const NewsTicker = () => {
   const [news, setNews] = useState([]);
@@ -38,15 +39,21 @@ const NewsTicker = () => {
   }
 
   return (
-    <div className="bg-secondary text-white py-2 overflow-hidden relative">
-      <div className="news-ticker whitespace-nowrap">
+    <div className="bg-secondary text-white py-3 overflow-hidden relative border-y border-secondary-foreground/20">
+      <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-secondary to-transparent z-10" />
+      <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-secondary to-transparent z-10" />
+      <div className="flex items-center gap-2 px-4 absolute left-0 top-1/2 -translate-y-1/2 z-20">
+        <AlertCircle className="h-4 w-4 text-red-400 animate-pulse" />
+        <span className="font-semibold">BREAKING</span>
+      </div>
+      <div className="news-ticker whitespace-nowrap pl-32">
         {news.map((item) => (
           <Link 
             key={item.id} 
             to={`/post/${item.id}`}
             className="mx-8 hover:text-secondary-foreground/80 transition-colors inline-block"
           >
-            BREAKING NEWS: {item.title} •
+            {item.title} •
           </Link>
         ))}
         {/* Duplicate the news items to create a seamless loop */}
@@ -56,7 +63,7 @@ const NewsTicker = () => {
             to={`/post/${item.id}`}
             className="mx-8 hover:text-secondary-foreground/80 transition-colors inline-block"
           >
-            BREAKING NEWS: {item.title} •
+            {item.title} •
           </Link>
         ))}
       </div>

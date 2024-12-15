@@ -16,13 +16,13 @@
 .news-ticker {
   display: inline-block;
   white-space: nowrap;
-  animation: ticker 30s linear infinite;
+  animation: ticker 40s linear infinite;
   will-change: transform;
 }
 
 @keyframes ticker {
   0% {
-    transform: translateX(100%);
+    transform: translateX(0);
   }
   100% {
     transform: translateX(-50%);

@@ -15,7 +15,9 @@
 
 .news-ticker {
   display: inline-block;
+  white-space: nowrap;
   animation: ticker 30s linear infinite;
+  will-change: transform;
 }
 
 @keyframes ticker {
@@ -23,6 +25,11 @@
     transform: translateX(100%);
   }
   100% {
-    transform: translateX(-100%);
+    transform: translateX(-50%);
   }
+}
+
+/* Pause animation on hover */
+.news-ticker:hover {
+  animation-play-state: paused;
 }

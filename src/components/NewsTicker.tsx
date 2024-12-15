@@ -16,7 +16,9 @@ const NewsTicker = () => {
       .from('posts')
       .select('id, title')
       .eq('is_breaking_news', true)
-      .eq('status', 'published');
+      .eq('status', 'published')
+      .not('is_hidden', 'eq', true)
+      .not('is_archived', 'eq', true);
     
     if (error) {
       console.error('Error fetching breaking news:', error);
@@ -36,15 +38,25 @@ const NewsTicker = () => {
   }
 
   return (
-    <div className="bg-primary text-white py-2 overflow-hidden">
+    <div className="bg-secondary text-white py-2 overflow-hidden relative">
       <div className="news-ticker whitespace-nowrap">
         {news.map((item) => (
           <Link 
             key={item.id} 
             to={`/post/${item.id}`}
-            className="mx-8 hover:text-primary-foreground/80 transition-colors inline-block"
+            className="mx-8 hover:text-secondary-foreground/80 transition-colors inline-block"
           >
-            {item.title} •
+            BREAKING NEWS: {item.title} •
+          </Link>
+        ))}
+        {/* Duplicate the news items to create a seamless loop */}
+        {news.map((item) => (
+          <Link 
+            key={`${item.id}-duplicate`} 
+            to={`/post/${item.id}`}
+            className="mx-8 hover:text-secondary-foreground/80 transition-colors inline-block"
+          >
+            BREAKING NEWS: {item.title} •
           </Link>
         ))}
       </div>

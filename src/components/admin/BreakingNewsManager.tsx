@@ -16,88 +16,114 @@ export const BreakingNewsManager = () => {
 
   const fetchNews = async () => {
     const { data, error } = await supabase
-      .from('pages')
-      .select('content')
-      .eq('slug', 'breaking-news')
-      .maybeSingle();
+      .from('posts')
+      .select('id, title')
+      .eq('is_breaking_news', true)
+      .eq('status', 'published')
+      .not('is_hidden', 'eq', true)
+      .not('is_archived', 'eq', true);
     
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching news:', error);
+    if (error) {
+      console.error('Error fetching breaking news:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch news items",
+        description: "Failed to fetch breaking news",
         variant: "destructive"
       });
       return;
     }
 
-    if (data) {
-      try {
-        const items = JSON.parse(data.content);
-        setNewsItems(items);
-      } catch (e) {
-        console.error('Error parsing news:', e);
-        setNewsItems([]);
-      }
-    } else {
-      setNewsItems([]);
-    }
+    setNewsItems(data?.map(item => item.title) || []);
   };
 
   const handleSaveNews = async () => {
     if (!newItem.trim()) return;
-    
-    const updatedNews = editingIndex !== null
-      ? newsItems.map((item, index) => index === editingIndex ? newItem : item)
-      : [...newsItems, newItem];
 
-    const { error } = await supabase
-      .from('pages')
-      .upsert({
-        slug: 'breaking-news',
-        title: 'Breaking News',
-        content: JSON.stringify(updatedNews),
-        is_published: true,
-        author_id: (await supabase.auth.getSession()).data.session?.user.id
-      });
-
-    if (error) {
+    const { data: session } = await supabase.auth.getSession();
+    if (!session?.session?.user?.id) {
       toast({
         title: "Error",
-        description: editingIndex !== null ? "Failed to update news item" : "Failed to add news item",
+        description: "You must be logged in to manage breaking news",
         variant: "destructive"
       });
       return;
     }
 
-    setNewsItems(updatedNews);
+    const { data, error } = await supabase
+      .from('posts')
+      .insert({
+        title: newItem,
+        content: newItem, // Required field
+        author_id: session.session.user.id,
+        is_breaking_news: true,
+        status: 'published'
+      });
+
+    if (error) {
+      console.error('Error saving news:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add news item",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    await fetchNews(); // Refresh the list
     setNewItem("");
     setEditingIndex(null);
     toast({
       title: "Success",
-      description: editingIndex !== null ? "News item updated successfully" : "News item added successfully"
+      description: "News item added successfully"
     });
   };
 
-  const handleEdit = (index: number) => {
+  const handleEdit = async (index: number) => {
+    const { data, error } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('is_breaking_news', true)
+      .eq('status', 'published')
+      .not('is_hidden', 'eq', true)
+      .not('is_archived', 'eq', true);
+    
+    if (error || !data) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch post for editing",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setNewItem(newsItems[index]);
     setEditingIndex(index);
   };
 
   const handleRemoveNews = async (index: number) => {
-    const updatedNews = newsItems.filter((_, i) => i !== index);
+    const { data, error } = await supabase
+      .from('posts')
+      .select('id')
+      .eq('is_breaking_news', true)
+      .eq('status', 'published')
+      .not('is_hidden', 'eq', true)
+      .not('is_archived', 'eq', true);
     
-    const { error } = await supabase
-      .from('pages')
-      .upsert({
-        slug: 'breaking-news',
-        title: 'Breaking News',
-        content: JSON.stringify(updatedNews),
-        is_published: true,
-        author_id: (await supabase.auth.getSession()).data.session?.user.id
+    if (error || !data || !data[index]) {
+      toast({
+        title: "Error",
+        description: "Failed to find post for removal",
+        variant: "destructive"
       });
+      return;
+    }
 
-    if (error) {
+    const { error: updateError } = await supabase
+      .from('posts')
+      .update({ is_breaking_news: false })
+      .eq('id', data[index].id);
+
+    if (updateError) {
       toast({
         title: "Error",
         description: "Failed to remove news item",
@@ -106,7 +132,7 @@ export const BreakingNewsManager = () => {
       return;
     }
 
-    setNewsItems(updatedNews);
+    await fetchNews(); // Refresh the list
     if (editingIndex === index) {
       setEditingIndex(null);
       setNewItem("");

@@ -144,7 +144,9 @@ export type Database = {
           excerpt: string | null
           featured_image: string | null
           id: string
+          is_archived: boolean | null
           is_breaking_news: boolean | null
+          is_hidden: boolean | null
           published_at: string | null
           status: string | null
           title: string
@@ -157,7 +159,9 @@ export type Database = {
           excerpt?: string | null
           featured_image?: string | null
           id?: string
+          is_archived?: boolean | null
           is_breaking_news?: boolean | null
+          is_hidden?: boolean | null
           published_at?: string | null
           status?: string | null
           title: string
@@ -170,7 +174,9 @@ export type Database = {
           excerpt?: string | null
           featured_image?: string | null
           id?: string
+          is_archived?: boolean | null
           is_breaking_news?: boolean | null
+          is_hidden?: boolean | null
           published_at?: string | null
           status?: string | null
           title?: string

@@ -40,3 +40,27 @@
 .read-the-docs {
   color: #888;
 }
+
+@keyframes ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.news-ticker {
+  display: inline-block;
+  animation: ticker 30s linear infinite;
+  animation-play-state: running;
+}
+
+.news-ticker:hover {
+  animation-play-state: paused;
+}
+
+/* Faster animation for black mode */
+.bg-black .news-ticker {
+  animation-duration: 20s;
+}

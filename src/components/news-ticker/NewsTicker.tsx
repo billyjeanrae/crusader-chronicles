@@ -19,25 +19,34 @@ const NewsTicker = () => {
   }, []);
 
   const fetchBreakingNews = async () => {
-    const { data, error } = await supabase
-      .from('posts')
-      .select('id, title')
-      .eq('is_breaking_news', true)
-      .eq('status', 'published')
-      .not('is_hidden', 'eq', true)
-      .not('is_archived', 'eq', true);
-    
-    if (error) {
-      console.error('Error fetching breaking news:', error);
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('id, title')
+        .eq('is_breaking_news', true)
+        .eq('status', 'published')
+        .eq('is_hidden', false)
+        .eq('is_archived', false);
+      
+      if (error) {
+        console.error('Error fetching breaking news:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch breaking news",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      setNews(data || []);
+    } catch (error) {
+      console.error('Error in fetchBreakingNews:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch breaking news",
+        description: "An error occurred while fetching breaking news",
         variant: "destructive"
       });
-      return;
     }
-
-    setNews(data || []);
   };
 
   if (news.length === 0) {
@@ -52,10 +61,22 @@ const NewsTicker = () => {
           : 'bg-secondary text-white border-secondary-foreground/20'
       }`}
     >
-      <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black to-transparent z-10" 
-           style={{ background: mode === 'black' ? 'linear-gradient(to right, black, transparent)' : 'linear-gradient(to right, var(--secondary), transparent)' }} />
-      <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-black to-transparent z-10"
-           style={{ background: mode === 'black' ? 'linear-gradient(to left, black, transparent)' : 'linear-gradient(to left, var(--secondary), transparent)' }} />
+      <div 
+        className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r z-10" 
+        style={{ 
+          background: mode === 'black' 
+            ? 'linear-gradient(to right, black, transparent)' 
+            : 'linear-gradient(to right, var(--secondary), transparent)' 
+        }} 
+      />
+      <div 
+        className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l z-10"
+        style={{ 
+          background: mode === 'black' 
+            ? 'linear-gradient(to left, black, transparent)' 
+            : 'linear-gradient(to left, var(--secondary), transparent)' 
+        }} 
+      />
       <TickerContent news={news} mode={mode} />
     </div>
   );

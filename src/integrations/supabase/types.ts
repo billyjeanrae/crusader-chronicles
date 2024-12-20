@@ -9,6 +9,200 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      article_comments: {
+        Row: {
+          article_id: number | null
+          content: string | null
+          created_at: string | null
+          id: number
+          user_id: string | null
+        }
+        Insert: {
+          article_id?: number | null
+          content?: string | null
+          created_at?: string | null
+          id?: number
+          user_id?: string | null
+        }
+        Update: {
+          article_id?: number | null
+          content?: string | null
+          created_at?: string | null
+          id?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_comments_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      article_shares: {
+        Row: {
+          article_id: number | null
+          created_at: string | null
+          id: number
+          user_id: string | null
+        }
+        Insert: {
+          article_id?: number | null
+          created_at?: string | null
+          id?: number
+          user_id?: string | null
+        }
+        Update: {
+          article_id?: number | null
+          created_at?: string | null
+          id?: number
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_shares_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      article_views: {
+        Row: {
+          article_id: number | null
+          created_at: string | null
+          id: number
+          views: number | null
+        }
+        Insert: {
+          article_id?: number | null
+          created_at?: string | null
+          id?: number
+          views?: number | null
+        }
+        Update: {
+          article_id?: number | null
+          created_at?: string | null
+          id?: number
+          views?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "article_views_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      articles: {
+        Row: {
+          author_id: string | null
+          background_color: string | null
+          content: string
+          created_at: string | null
+          excerpt: string | null
+          featured_image: string | null
+          id: number
+          is_archived: boolean | null
+          is_breaking_news: boolean | null
+          is_featured: boolean | null
+          is_hidden: boolean | null
+          published_at: string | null
+          speed: number | null
+          status: string | null
+          tags: string[] | null
+          text_color: string | null
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          author_id?: string | null
+          background_color?: string | null
+          content: string
+          created_at?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: number
+          is_archived?: boolean | null
+          is_breaking_news?: boolean | null
+          is_featured?: boolean | null
+          is_hidden?: boolean | null
+          published_at?: string | null
+          speed?: number | null
+          status?: string | null
+          tags?: string[] | null
+          text_color?: string | null
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          author_id?: string | null
+          background_color?: string | null
+          content?: string
+          created_at?: string | null
+          excerpt?: string | null
+          featured_image?: string | null
+          id?: number
+          is_archived?: boolean | null
+          is_breaking_news?: boolean | null
+          is_featured?: boolean | null
+          is_hidden?: boolean | null
+          published_at?: string | null
+          speed?: number | null
+          status?: string | null
+          tags?: string[] | null
+          text_color?: string | null
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      articles_categories: {
+        Row: {
+          article_id: number
+          category_id: string
+          created_at: string | null
+        }
+        Insert: {
+          article_id: number
+          category_id: string
+          created_at?: string | null
+        }
+        Update: {
+          article_id?: number
+          category_id?: string
+          created_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "articles_categories_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "articles_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -139,6 +333,7 @@ export type Database = {
       posts: {
         Row: {
           author_id: string
+          background_color: string | null
           content: string
           created_at: string
           excerpt: string | null
@@ -148,12 +343,15 @@ export type Database = {
           is_breaking_news: boolean | null
           is_hidden: boolean | null
           published_at: string | null
+          speed: number | null
           status: string | null
+          text_color: string | null
           title: string
           updated_at: string
         }
         Insert: {
           author_id: string
+          background_color?: string | null
           content: string
           created_at?: string
           excerpt?: string | null
@@ -163,12 +361,15 @@ export type Database = {
           is_breaking_news?: boolean | null
           is_hidden?: boolean | null
           published_at?: string | null
+          speed?: number | null
           status?: string | null
+          text_color?: string | null
           title: string
           updated_at?: string
         }
         Update: {
           author_id?: string
+          background_color?: string | null
           content?: string
           created_at?: string
           excerpt?: string | null
@@ -178,7 +379,9 @@ export type Database = {
           is_breaking_news?: boolean | null
           is_hidden?: boolean | null
           published_at?: string | null
+          speed?: number | null
           status?: string | null
+          text_color?: string | null
           title?: string
           updated_at?: string
         }
@@ -240,6 +443,27 @@ export type Database = {
           email?: string | null
           id?: string
           role?: Database["public"]["Enums"]["user_role"] | null
+        }
+        Relationships: []
+      }
+      settings: {
+        Row: {
+          created_at: string
+          id: number
+          tinymce_api_key: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          tinymce_api_key?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          tinymce_api_key?: string | null
+          updated_at?: string
         }
         Relationships: []
       }

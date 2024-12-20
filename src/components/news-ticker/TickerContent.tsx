@@ -9,6 +9,8 @@ interface TickerContentProps {
 export const TickerContent = ({ news, mode }: TickerContentProps) => {
   if (news.length === 0) return null;
 
+  const animationDuration = mode === 'black' ? '20s' : '30s';
+
   return (
     <>
       {mode === 'red' && (
@@ -17,7 +19,13 @@ export const TickerContent = ({ news, mode }: TickerContentProps) => {
           <span className="font-semibold">BREAKING</span>
         </div>
       )}
-      <div className={`news-ticker whitespace-nowrap ${mode === 'red' ? 'pl-32' : 'pl-4'}`}>
+      <div 
+        className={`news-ticker whitespace-nowrap ${mode === 'red' ? 'pl-32' : 'pl-4'}`}
+        style={{
+          animation: `scroll ${animationDuration} linear infinite`,
+          animationPlayState: 'running'
+        }}
+      >
         {news.map((item) => (
           <Link 
             key={item.id} 
